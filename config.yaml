@@ -1,0 +1,84 @@
+# 幅度 / 相位曲线
+#
+# 运行：
+#   python plot_sparam_curves.py
+#   python plot_sparam_curves.py --config config.yaml
+#
+# 画什么
+#   plot: reflection     只画反射
+#   plot: transmission   只画透射
+#   plot: all            反射和透射都画。反射在前，透射在后
+#   也可以写中文：反射 / 透射 / 全部
+#
+# 一张图里怎么排
+#   reflection_ports: all
+#       全部反射叠在同一张图。16 端口就是 16 条曲线，上面幅度、下面相位。
+#   reflection_ports 写成具体端口，或任何透射
+#       每个 S 参数单独一张图，图内仍是上面幅度、下面相位。
+#
+# 反射端口（1 开始，丝印号 = Touchstone 端口号）
+#   all
+#   [1, 2, 5]
+#   "1-8,11,16"
+#
+# 透射端口对：[接收, 发射]，也就是 S接收,发射
+#   [2, 1] 表示 S2,1（2 口收、1 口发）
+#   all                         每个非对角 S 参数一张图。16 端口是 240 张
+#   - [2, 1]
+#   - "S16,2"
+#   也可以按发射/接收筛选（接收和发射相同的对角项会自动跳过）：
+#     transmission_pairs:
+#       tx: [1]                 # 1 口发射，到其余每个口各一张
+#       rx: [2, 3]              # 只保留这些接收口；不写 rx 就是除自身外的全部接收口
+#       pairs:
+#         - [5, 6]              # 再额外加上这些端口对
+#
+# 输出（相对 out_dir，按源文件的子目录镜像）
+#   <文件名>/reflection_all.png
+#   <文件名>/reflection/S01_01_L.png
+#   <文件名>/transmission/Tx_Port_01_L/S02_01_LL.png
+#
+# 端口分区（只用于图例里的 L/R，不改变选哪条曲线）
+#   左脑 L：2, 1, 16, 15, 14, 13, 12, 11
+#   右脑 R：3, 4, 5, 6, 7, 8, 9, 10
+#
+# map_preset（cad 时丝印号就是端口号）
+#   cad / identity / cad_ring / real_sym / sim_sym
+#
+# 注意：transmission_pairs 为 all 时，每个文件 16×15=240 张透射图。
+# 大批量目录可以先改成需要的端口对，或把 plot 改成 reflection。
+
+root: "/mnt/share/算法/real_person/真人基准数据/魏县CT室病人数据/魏县1号机测试数据/健康人员数据/钱鑫源每日测试/11月记录"
+out_dir: "/home/zhanglifeng/request/16天线一致性/可视化/魏县CT室病人数据/魏县1号机测试数据/健康人员数据/钱鑫源每日测试/11月记录"
+
+# reflection / transmission / all
+plot: all
+
+# all = 16 条反射叠成一张；写成端口列表则每个端口一张
+reflection_ports: all
+
+# all = 每条透射一张；或按上面的格式指定端口对
+transmission_pairs: all
+
+# 不限制就写 null。范围含两端，单位 GHz
+freq_min_ghz: null
+freq_max_ghz: 2.5
+
+apply_antenna_map: true
+map_preset: cad
+
+# 图内自上而下。可选 mag / phase / re / im
+metrics:
+  - mag
+  - phase
+
+dpi: 120
+
+# 同名 png 已存在则跳过。改了频率范围或 metrics 后，想重画就改成 false
+skip_existing: true
+
+suffixes:
+  - .s16p
+
+# 图例前缀。省略时：开了天线映射用 Ant，否则用 Port
+# label_prefix: Ant
